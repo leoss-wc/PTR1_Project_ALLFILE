@@ -34,7 +34,7 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
                    │ rosserial (USB)
 ┌──────────────────▼──────────────────────────┐
 │              ESP32-S3                       │
-│   Motor Control │ Relay │ IMU │ LED Status  │
+│   Motor Control │ Relay │ IMU               │
 └─────────────────────────────────────────────┘
 ```
 
@@ -47,8 +47,8 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 | Main Computer | Raspberry Pi 4B (4GB RAM) |
 | Microcontroller | ESP32-S3 |
 | Drive System | 4-Wheel Mecanum |
-| LiDAR | RPLiDAR A1 |
-| Camera | Fisheye USB Camera |
+| LiDAR | YDG2 LiDar |
+| Camera | Fisheye USB Camera OV5647|
 | Motor Driver | TB6612FNG via PCF8575 |
 
 ---
@@ -58,7 +58,7 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 | Layer | Technology |
 |---|---|
 | Robot OS | ROS Noetic (Ubuntu 20.04) |
-| SLAM | gmapping |
+| SLAM | slam_toolbox |
 | Localization | AMCL |
 | Local Planner | TEB Local Planner |
 | Object Detection | YOLO11 nano + ONNX Runtime |
@@ -80,7 +80,7 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/leoss-wc/ptR1.git
+git clone https://github.com/leoss-wc/ptR1_bot.git
 cd ptR1
 
 # Install ROS dependencies
@@ -94,11 +94,14 @@ source devel/setup.bash
 ### Launch Navigation
 
 ```bash
+# Start the base system 
+roslaunch ptR1 navigation_base.launch
 # Start the full navigation stack
-roslaunch ptR1 navigation.launch
-
+rosrun ptR1 navigation_node.py
+#send service  
 # Start object detection node
-rosrun ptR1 detection_node.py
+rosrun stream_manager_node.py
+#send service  
 ```
 
 ### Electron App (Operator PC)

@@ -108,7 +108,7 @@ class MapManager:
         map_to_load = req.name
         rospy.loginfo(f"Loading map '{map_to_load}' and starting navigation nodes...")
 
-        # 1. เช็คไฟล์ก่อนเลย ถ้าไม่มีจะได้ไม่ต้องไปสั่งหยุด process ให้เสียเวลา
+        # 1. เช็คไฟล์ YAML ของแผนที่ที่เลือกก่อน
         map_yaml_path = os.path.join(MAP_FOLDER, f"{map_to_load}.yaml")
         if not os.path.exists(map_yaml_path):
             return SelectNavMapResponse(False, f"Map '{map_to_load}' not found.")

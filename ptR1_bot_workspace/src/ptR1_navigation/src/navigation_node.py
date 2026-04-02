@@ -73,7 +73,7 @@ class NavigationManager:
     def cmd_callback(self, msg):
         should_cancel = False
         should_resume = False
-        command = msg.data  # ← ขึ้นมาบนสุด
+        command = msg.data
 
         if command == 'shutdown_raspi':
             rospy.logwarn("[Nav] Shutdown command received. Shutting down Pi...")
@@ -114,10 +114,10 @@ class NavigationManager:
     def save_pose_to_file(self):
         """บันทึกตำแหน่งปัจจุบันลงไฟล์ JSON"""
         if self.current_map_name == "unknown":
-            rospy.logwarn("⚠️ Refusing to save pose: map name is unknown.")
+            rospy.logwarn("Refusing to save pose: map name is unknown.")
             return False
         if self.latest_pose is None:
-            rospy.logwarn("⚠️ No AMCL pose received yet. Cannot save.")
+            rospy.logwarn("No AMCL pose received yet. Cannot save.")
             return False
         pose_snapshot = self.latest_pose
         if pose_snapshot is None:
@@ -153,7 +153,7 @@ class NavigationManager:
     def restore_pose(self):
         """อ่านไฟล์ JSON และ Publish ไปยัง /initialpose"""
         if not os.path.exists(POSE_FILE):
-            rospy.logwarn("⚠️ No saved pose file found.")
+            rospy.logwarn("No saved pose file found.")
             return False
         try:
             with open(POSE_FILE, 'r') as f:
@@ -190,15 +190,15 @@ class NavigationManager:
             for _ in range(10):
                 self.initial_pose_pub.publish(msg)
                 rospy.sleep(0.3)
-            rospy.loginfo("📍 Restored initial pose from file.")
+            rospy.loginfo("Restored initial pose from file.")
             return True
         except Exception as e:
-            rospy.logerr(f"❌ Failed to load pose: {e}")
+            rospy.logerr(f"Failed to load pose: {e}")
             return False
 
     # --- Process Management ---
     def handle_start_nav(self, req):
-        """เริ่ม Navigation Stack (AMCL + MoveBase)"""
+        """Navigation Stack (AMCL + MoveBase)"""
         if self.nav_process:
             return StartAMCLResponse(True, "Navigation already running.")
         
@@ -223,11 +223,11 @@ class NavigationManager:
                         rospy.Time(0),
                         rospy.Duration(1.0)
                     )
-                    rospy.loginfo("✅ TF ready.")
+                    rospy.loginfo("TF ready.")
                     break
                 except tf.Exception:
                     if rospy.Time.now() > timeout:
-                        rospy.logwarn("⚠️ TF timeout. Proceeding anyway...")
+                        rospy.logwarn("TF timeout. Proceeding anyway...")
                         break
                     rospy.sleep(0.5)
             
@@ -235,10 +235,10 @@ class NavigationManager:
             self.restore_pose()
 
         except rospy.ROSException:
-            rospy.logwarn("⚠️ Timed out waiting for AMCL. Restore skipped.")
+            rospy.logwarn("Timed out waiting for AMCL. Restore skipped.")
 
     def handle_stop_nav(self, req):
-        """หยุด Navigation Stack"""
+        """Stop Navigation Stack"""
         rospy.loginfo("Stopping Navigation Stack...")
         self.handle_stop_patrol(None)
 
@@ -257,13 +257,13 @@ class NavigationManager:
             subprocess.Popen(["rosnode", "kill", "/amcl", "/move_base", "/map_server"])
             rospy.loginfo("Force killed: amcl, move_base, map_server")
         except Exception as e:
-            rospy.logwarn(f"⚠️ Failed to force kill nodes: {e}")
+            rospy.logwarn(f"Failed to force kill nodes: {e}")
 
         return StopAMCLResponse(True, "Navigation and Map Server Stopped.")
 
     # --- Patrol Logic ---
     def handle_start_patrol(self, req):
-        """เริ่ม Patrol ด้วย goal list ที่กำหนด"""
+        """Start Patrol with a list of goals. If loop=True, will repeat indefinitely."""
         if not req.goals:
             return StartPatrolResponse(False, "Goal list cannot be empty.")
         
@@ -294,7 +294,7 @@ class NavigationManager:
         return StartPatrolResponse(True, "Patrol started.")
     
     def handle_pause_patrol(self, req):
-        """หยุด Patrol ชั่วคราว"""
+        """Pause Patrol โดยยกเลิก Goal ปัจจุบัน แต่เก็บสถานะไว้ว่าเป็นการหยุดชั่วคราว (ไม่ใช่หยุดสมบูรณ์)"""
         with self._lock:
             if not self.is_patrolling:
                 return PausePatrolResponse(False, "Not currently patrolling.")
@@ -308,7 +308,7 @@ class NavigationManager:
         return PausePatrolResponse(True, "Patrol paused.")
 
     def handle_resume_patrol(self, req):
-        """Resume Patrol ที่หยุดอยู่"""
+        """Resume Patrol จากจุดที่หยุดไว้ (จะพยายามส่ง Goal เดิมอีกครั้ง)"""
         with self._lock:
             if not self.is_patrolling:
                 return ResumePatrolResponse(False, "Not currently patrolling.")
@@ -386,7 +386,6 @@ class NavigationManager:
                 
                 next_id = next_index if next_index < len(goal_list_snapshot) else 0
                 rospy.loginfo(f"Look-ahead Active: Pre-aligning heading towards Goal #{next_id + 1}")
-        # ==========================================
         
         # --- ส่ง Goal ไปให้ MoveBase ---
         rospy.loginfo(f"Moving to Goal #{current_index + 1}")

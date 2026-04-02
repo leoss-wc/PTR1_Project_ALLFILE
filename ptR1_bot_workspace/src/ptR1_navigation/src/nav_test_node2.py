@@ -67,7 +67,7 @@ class NavTester:
 
     def send_test_goal(self, x, y, z, w, test_name):
         rosbag_process, bag_filename = self._start_rosbag(test_name)
-        rospy.loginfo(f"--- 🚀 เริ่มทดสอบ: {test_name} ---")
+        rospy.loginfo(f"--- เริ่มทดสอบ: {test_name} ---")
         
         start_time = rospy.Time.now()
         state = self._send_single_goal(x, y, z, w)
@@ -76,9 +76,9 @@ class NavTester:
         self._stop_rosbag(rosbag_process)
 
         if state == 3:
-            rospy.loginfo(f"✅ ถึงเป้าหมายเรียบร้อย! ใช้เวลาไป: {duration:.2f} วินาที")
+            rospy.loginfo(f"ถึงเป้าหมายเรียบร้อย! ใช้เวลาไป: {duration:.2f} วินาที")
         else:
-            rospy.logwarn(f"❌ ไม่สามารถไปถึงเป้าหมายได้ (State: {state})")
+            rospy.logwarn(f"ไม่สามารถไปถึงเป้าหมายได้ (State: {state})")
         print("-" * 60)
 
     def test_square_path(self, side_length=1.0):
@@ -90,23 +90,23 @@ class NavTester:
 
         # วนลูป 4 ครั้ง (4 ด้าน)
         for i in range(1, 5):
-            rospy.loginfo(f"📍 ด้านที่ {i}/4: กำลังเดินหน้า {side_length} เมตร...")
+            rospy.loginfo(f"ด้านที่ {i}/4: กำลังเดินหน้า {side_length} เมตร...")
             state_move = self._send_single_goal(side_length, 0.0, 0.0, 1.0)
             if state_move != 3:
-                rospy.logwarn("⚠️ หุ่นยนต์เดินหน้าไม่สำเร็จ ยกเลิกการทดสอบกลางคัน")
+                rospy.logwarn("หุ่นยนต์เดินหน้าไม่สำเร็จ ยกเลิกการทดสอบกลางคัน")
                 break
             
-            rospy.loginfo(f"🔄 ด้านที่ {i}/4: กำลังหมุนซ้าย 90 องศา...")
+            rospy.loginfo(f"ด้านที่ {i}/4: กำลังหมุนซ้าย 90 องศา...")
             state_turn = self._send_single_goal(0.0, 0.0, 0.707, 0.707)
             if state_turn != 3:
-                rospy.logwarn("⚠️ หุ่นยนต์หมุนตัวไม่สำเร็จ ยกเลิกการทดสอบกลางคัน")
+                rospy.logwarn("หุ่นยนต์หมุนตัวไม่สำเร็จ ยกเลิกการทดสอบกลางคัน")
                 break
 
         duration = (rospy.Time.now() - start_time).to_sec()
         self._stop_rosbag(rosbag_process)
         
-        rospy.loginfo(f"✅ จบการทดสอบเดินสี่เหลี่ยม! ใช้เวลารวม: {duration:.2f} วินาที")
-        rospy.loginfo(f"📁 ข้อมูลถูกบันทึกที่: {bag_filename}")
+        rospy.loginfo(f"จบการทดสอบเดินสี่เหลี่ยม! ใช้เวลารวม: {duration:.2f} วินาที")
+        rospy.loginfo(f"ข้อมูลถูกบันทึกที่: {bag_filename}")
         print("-" * 60)
 
 
