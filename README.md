@@ -1,5 +1,5 @@
 # ptR1 — Autonomous Indoor Patrol Robot
-
+![ptR1 Robot](docs/3d_robot.png)
 > Senior Year Thesis Project | Naresuan University | 2024–2026
 
 ptR1 is an autonomous indoor patrol robot designed for long-corridor environments. It combines ROS-based navigation, real-time object detection, and a full-stack remote control application — all running on edge hardware.
@@ -47,6 +47,7 @@ The system is divided into 3 layers:
 | Power Regulation | LM2596 x2 (12V→5V), XY-3606 (12V→5V for Pi) |
 
 ![Control Board](docs/Control_Board.png)
+[Control Board Wiring Reference (draw.io)](docs/Control_board_drawio.png)
 ![Power Distribution](docs/Power_Distribution.png)
 
 ---
@@ -70,7 +71,7 @@ The system is divided into 3 layers:
 ### Electron App
 | Dashboard (Camera + Map) | Map & Navigation (Patrol Mode) |
 |---|---|
-| ![](docs/electron_demo4.png) | ![](docs/electron_demo3.png) |
+| ![](docs/electron_demo3.png) | ![](docs/electron_demo4.png) |
 
 ### RViz — SLAM & Navigation
 | Full Corridor Map (~80m) | Navigation with Costmap |
