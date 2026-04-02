@@ -8,9 +8,9 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 
 ## Features
 
-- **Autonomous Navigation** — SLAM-based mapping and path planning using gmapping, AMCL, and TEB Local Planner
+- **Autonomous Navigation** — SLAM-based mapping (slam_toolbox) and path planning using AMCL and TEB Local Planner
 - **Real-time Object Detection** — Person detection (COCO pretrained) and door state classification (custom-trained, mAP50 = 0.879) via YOLO11 nano + ONNX Runtime
-- **4-Wheel Mecanum Drive** — Omnidirectional movement with PID motor control
+- **4-Wheel Mecanum Drive (X-config)** — Omnidirectional movement with PID motor control
 - **Remote Control App** — Electron-based dashboard with live video streaming (WebRTC/RTSP), map visualization, and navigation commands
 - **Remote Access** — Tailscale VPN for out-of-network access
 
@@ -18,25 +18,13 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 
 ## System Architecture
 
-```
-┌─────────────────────────────────────────────┐
-│              Operator PC                    │
-│         Electron App (Node.js)              │
-│   Map View │ Video Stream │ Nav Commands    │
-└──────────────────┬──────────────────────────┘
-                   │ WebSocket (rosbridge)
-                   │ WebRTC / RTSP
-┌──────────────────▼──────────────────────────┐
-│           Raspberry Pi 4B                   │
-│              ROS Noetic                     │
-│  SLAM │ AMCL │ TEB │ YOLO11 (ONNX Runtime) │
-└──────────────────┬──────────────────────────┘
-                   │ rosserial (USB)
-┌──────────────────▼──────────────────────────┐
-│              ESP32-S3                       │
-│   Motor Control │ Relay │ IMU │ LED Status  │
-└─────────────────────────────────────────────┘
-```
+![System Architecture](docs/system_arc.png)
+
+The system is divided into 3 layers:
+
+- **User Interface Layer** — Electron App (Dashboard, Command Center, Map & Navigation, Video Library, Settings) communicating via ROSbridge WebSocket over LAN or Tailscale VPN
+- **High-Level Control Layer** — Raspberry Pi 4B running ROS Noetic, handling SLAM, localization, navigation, object detection, and video streaming
+- **Low-Level Control Layer** — ESP32-S3 handling motor control (PID, Mecanum inverse kinematics), odometry, IMU, relay, and servo control via rosserial at 921600 bps
 
 ---
 
@@ -46,10 +34,20 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 |---|---|
 | Main Computer | Raspberry Pi 4B (4GB RAM) |
 | Microcontroller | ESP32-S3 |
-| Drive System | 4-Wheel Mecanum |
-| LiDAR | YDLidar G2 |
-| Camera | Fisheye USB Camera OVA5647 |
-| Motor Driver | TB6612FNG via PCF8575 |
+| Drive System | 4-Wheel Mecanum (X-config) |
+| Motor Driver | TB6612FNG x2 (FL+FR / RL+RR) |
+| LiDAR | YDLidar G2 (USB Serial) |
+| Camera | Fisheye USB Camera (Pan/Tilt, MG995 Servo x2) |
+| IMU | MPU6050 (I2C 400kHz) |
+| I/O Expander | PCF8575 (I2C) — Relay & Motor direction |
+| Logic Level Shifter | TXS0108E (3.3V ↔ 5V) |
+| Encoder | Quadrature Encoder x4 |
+| Spotlight | COB LED x2 (via Relay) |
+| Battery | LiFePO4 12V 15Ah |
+| Power Regulation | LM2596 x2 (12V→5V), XY-3606 (12V→5V for Pi) |
+
+![Control Board](docs/Control_Board.png)
+![Power Distribution](docs/Power_Distribution.png)
 
 ---
 
@@ -172,6 +170,25 @@ npm start
 |---|---|---|---|---|
 | Model 1 | Person Detection | COCO (pretrained) | 0.45 | — |
 | Model 2 | Door State (open/close) | Custom (1,197 images) | 0.30 | 0.879 |
+
+---
+
+## Screenshots
+
+| Electron App — Person & Door Detection | Electron App — Door Open Detection |
+|---|---|
+| ![Screenshot 1](docs/screenshot_detection1.png) | ![Screenshot 2](docs/screenshot_detection2.png) |
+
+![Robot Photo](docs/robot_photo.jpg)
+
+---
+
+## Known Limitations
+
+- **Inference rate is low on Raspberry Pi 4B** — person detection runs every ~2.5s and door detection every ~6s due to CPU constraints. A GPU-equipped board (e.g. Jetson Nano) would enable real-time performance
+- **Glass doors are invisible to LiDAR** — transparent surfaces cause gaps in the costmap, requiring manual waypoint placement near glass areas
+- **AMCL localization drift** — long corridors with repeating door patterns can cause localization ambiguity over time
+- **rosserial dependency** — requires stable USB connection; reconnection must be handled manually if disconnected
 
 ---
 
