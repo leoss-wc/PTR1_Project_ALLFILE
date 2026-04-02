@@ -12,7 +12,6 @@ export async function initProfileManager() {
   document.getElementById('save-profile-btn').addEventListener('click', saveProfile);
   document.getElementById('delete-profile-btn').addEventListener('click', deleteProfile);
   document.getElementById('connect-all-btn').addEventListener('click', connectUsingCurrentProfile);
-  //document.getElementById('connect-video-btn').addEventListener('click', startRobotStream);
   document.getElementById('connectButton').addEventListener('click', connectUsingCurrentProfile);
   const startBtn = document.getElementById('start-stream-btn');
   const stopBtn = document.getElementById('stop-stream-btn');
@@ -21,7 +20,7 @@ export async function initProfileManager() {
       startBtn.disabled = true;
       startBtn.innerText = "Starting...";
       
-      const success = await startRobotStream(); // เรียกฟังก์ชันที่เราเขียนใหม่
+      const success = await startRobotStream();
       
       if (success) {
           startBtn.innerText = "Streaming (Active)";
@@ -38,7 +37,7 @@ export async function initProfileManager() {
       stopBtn.disabled = true;
       stopBtn.innerText = "Stopping...";
       
-      await stopRobotStream(); // เรียกฟังก์ชัน cleanup ใหม่
+      await stopRobotStream();
       
       startBtn.disabled = false;
       startBtn.innerText = "Start Stream";
@@ -83,35 +82,9 @@ function captureSingleFrame() {
     // ส่งภาพไปให้ main.js
     if (window.electronAPI && window.electronAPI.saveDatasetImage) {
         window.electronAPI.saveDatasetImage(base64Image);
-        showFlashEffect();
     }
 }
-function showFlashEffect() {
-    // หา div ที่ครอบวิดีโออยู่
-    const videoContainer = document.querySelector('.video-stream');
-    if (!videoContainer) return;
 
-    // สร้างแผ่นสีขาวทับหน้าจอ
-    const flash = document.createElement('div');
-    flash.style.position = 'absolute';
-    flash.style.top = '0';
-    flash.style.left = '0';
-    flash.style.width = '100%';
-    flash.style.height = '100%';
-    flash.style.backgroundColor = 'white';
-    flash.style.opacity = '0.5'; // ความสว่างของแฟลช
-    flash.style.pointerEvents = 'none'; // ให้คลิกทะลุได้
-    flash.style.transition = 'opacity 0.15s ease-out'; // ความเร็วในการเฟดออก
-    flash.style.zIndex = '999';
-    
-    videoContainer.appendChild(flash);
-    
-    // สั่งให้แฟลชจางหายไปอย่างรวดเร็ว (เหมือนกดชัตเตอร์กล้อง)
-    setTimeout(() => {
-        flash.style.opacity = '0';
-        setTimeout(() => flash.remove(), 150);
-    }, 50);
-}
 export async function startRobotStream() {
     const address = document.getElementById('profile-address').value;
     const whepPort = document.getElementById('profile-whep-port').value; 
@@ -123,14 +96,14 @@ export async function startRobotStream() {
 
     console.log("🚀 Starting Stream Sequence...");
 
-    // 1. สั่ง Backend ให้เริ่ม
+    // สั่ง Backend ให้เริ่ม FFmpeg Stream และ opencv
     const backendSuccess = await window.electronAPI.startFFmpegStream();
     if (!backendSuccess) {
         console.error("❌ Failed to start Backend.");
         return false;
     }
-    // 2.ใช้ระบบรอแบบ วนเช็คทุก 1 วินาที สูงสุด 15 ครั้ง
-    console.log("⏳ Polling for stream availability...");
+    // ใช้ระบบรอแบบ วนเช็คทุก 1 วินาที สูงสุด 15 ครั้ง
+    console.log("Polling for stream availability...");
     const isReady = await waitForStreamReady(address, whepPort, 10);
 
     if (isReady) {
@@ -140,7 +113,6 @@ export async function startRobotStream() {
     } else {
         console.error("❌ Stream timeout. Backend started but no video signal.");
         alert("Stream started but timed out (No Video). Check Camera/Network.");
-        // อาจจะสั่ง stop เพื่อเคลียร์ process
         stopRobotStream();
         return false;
     }
@@ -152,7 +124,7 @@ async function waitForStreamReady(address, port, maxRetries = 10) {
     for (let i = 0; i < maxRetries; i++) {
         try {            
             console.log(`Checking stream attempt ${i + 1}/${maxRetries}...`);
-            // 1. ลองยิง Request ไปเช็ค (ใช้ timeout สั้นๆ 1 วินาทีเผื่อ Server ค้าง)
+            //ลองยิง Request ไปเช็ค (ใช้ timeout สั้นๆ 1 วินาทีเผื่อ Server ค้าง)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 1000);
             // ใช้ method 'HEAD' เพื่อเช็คแค่ว่า Server อยู่ไหม
@@ -161,28 +133,27 @@ async function waitForStreamReady(address, port, maxRetries = 10) {
                 signal: controller.signal 
             }).catch(() => null);
             clearTimeout(timeoutId);
-            // 2. ถ้า Server ตอบกลับมา (ไม่ว่าจะ 200, 404 หรือ 405) แปลว่า Port เปิดแล้ว!
+            //ถ้า Server ตอบกลับมา (ไม่ว่าจะ 200, 404 หรือ 405) แปลว่า Port เปิดแล้ว
             if (response) {
                 console.log("Server is responding! Ready to connect.");
-                
-                // รอแถมอีกนิดนึง (1 วิ) ให้ FFmpeg ส่งข้อมูลเฟรมแรกเข้าทัน
+                // รอ FFmpeg ส่งข้อมูลเฟรมแรกเข้าทัน
                 await new Promise(r => setTimeout(r, 1000)); 
                 
-                return true; // 👈 ออกจาก Loop ทันที ไม่ต้องรอครบ 10 วิ
+                return true;
             }
             
         } catch (e) {
             console.log("Waiting...");
         }
-        await new Promise(r => setTimeout(r, 1000)); // รอทีละ 1 วินาที
+        await new Promise(r => setTimeout(r, 1000)); 
     }
-    return true; // ถึงจะครบ 10 ครั้งก็ถือว่าใช้ได้
+    return true; 
 }
 
 export async function stopRobotStream() {
     console.log("Stopping Stream Sequence...");
     disconnectPlayer();
-    // 2. สั่ง Backend ให้ปิด FFmpeg
+    //สั่ง Backend ให้ปิด FFmpeg
     await window.electronAPI.stopFFmpegStream();
     console.log("Stream stopped and cleaned up.");
 }
@@ -194,6 +165,7 @@ export function connectPlayer(address, whepPort) {
         return;
     }
     disconnectPlayer();
+    
     const whepUrl = `http://${address}:${whepPort}/mystream/whep`;
     const videoElement = document.getElementById('stream');
     const statusElement = document.getElementById('rtc_status');
@@ -206,13 +178,11 @@ export function connectPlayer(address, whepPort) {
         console.log("▶ Video playing logic triggered.");
     };
     videoElement.onplaying = handlePlay;
-    // ถ้าวิดีโอมันเล่นอยู่แล้ว (Already Playing) ให้เรียกเลยไม่ต้องรอ Event
+    // ถ้าวิดีโอเล่นอยู่แล้ว (Already Playing) ให้เรียกเลยไม่ต้องรอ Event
     if (!videoElement.paused && !videoElement.ended && videoElement.readyState > 2) {
         handlePlay();
     }
 }
-
-
 export function disconnectPlayer() {
     if (window.overlay) {
         window.overlay.clear();
@@ -319,7 +289,7 @@ async function saveProfile() {
         if (index > -1) allRobotProfiles[index] = updatedProfileData;
     } else {
         if (allRobotProfiles.some(p => p.name === newName)) {
-            statusEl.textContent = '❌ Profile name already exists.';
+            statusEl.textContent = 'Profile name already exists.';
             return;
         }
         allRobotProfiles.push(updatedProfileData);

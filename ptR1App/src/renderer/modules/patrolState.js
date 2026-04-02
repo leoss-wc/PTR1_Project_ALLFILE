@@ -31,7 +31,7 @@ export function updateStatus(newStatus, forcePatrollingState = null) {
                    statusLower.includes('stopped')) {
             isPatrolling = false;
         }
-        // กรณีอื่นๆ (เช่น Error) ให้คงค่าเดิมไว้ ไม่ต้องไปเปลี่ยนมัน
+        // กรณีอื่นๆ (เช่น Error) ให้คงค่าเดิมไว้
     }
 
     console.log(`State Updated: Status="${currentStatus}", isPatrolling=${isPatrolling}`);

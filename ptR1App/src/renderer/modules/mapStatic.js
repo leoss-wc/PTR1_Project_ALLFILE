@@ -58,7 +58,7 @@ function updateMapToolsState(hasMap) {
 }
 
 export function initStaticMap() {
-  // 2. Get element และ context ของทุก Layer
+  // Get element และ context ของทุก Layer
   backgroundCanvas = document.getElementById('map-background-layer');
   objectsCanvas = document.getElementById('map-objects-layer');
   scanCanvas = document.getElementById('map-scan-layer');
@@ -201,28 +201,15 @@ document.getElementById('start-nav-btn').addEventListener('click', async () => {
         
         if (!navRes.success) throw new Error(navRes.message);
 
-        //รอ AMCL ตื่น
+        //รอ AMCL ทำงานสักพักก่อนค่อยสั่ง Init Home เพื่อให้แน่ใจว่า Pose Estimate ถูกอัปเดตแล้ว
         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Initializing...`;
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         console.log(`Attempting Restore for ${activeMap.name}...`);
-        /*
-        const homeRes = await window.electronAPI.initHome(activeMap.name);
-
-        if (homeRes.success) {
-            console.log("Robot initialized at HOME position.");
-            //alert(`System Started! Robot is at Home.`);
-        } else {
-            // กรณีล้มเหลว (เช่น ไม่เคยเซ็ต Home ไว้): ไม่เป็นไร แค่แจ้งเตือน
-            console.warn(" Could not init home (Home not set?). User must set pose manually.");
-            alert(`System Started. \n Warning: Home location not found.\nPlease set '2D Pose Estimate' manually.`);
-        }
-            */
     } catch (error) {
         console.error("❌ Error sequence:", error);
         alert(`Error: ${error.message}`);
     } finally {
-        // คืนค่าปุ่ม
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
@@ -318,7 +305,7 @@ function bindUI() {
       }
       console.log(`[Home] ${res.action}: ${res.message}`);
     } else {
-      console.log(`❌ ${res.action} Failed: ${res.message}`);
+      console.log(`${res.action} Failed: ${res.message}`);
     }
   });
   // Listener รับผลการลบแผนที่
@@ -559,7 +546,7 @@ function preprocessMapData(sourceImage) {
   // ดังนั้น Black ใน Uint32 คือ 0xFF000000 (Full Alpha, B=0, G=0, R=0)
   
   // กำหนด Threshold: ถ้าค่าสีน้อยกว่านี้ถือเป็นสิ่งกีดขวาง
-  // เราเช็คแค่ Byte แรก (สีแดง) ก็พอ: pixel & 0xFF
+  // เช็คแค่ Byte แรก (สีแดง): pixel & 0xFF
   const obstacleThreshold = 50; 
   const margin = 1; // ขยายขอบ 1 พิกเซล (รวมเป็น 3x3)
 
@@ -756,15 +743,15 @@ function setupCanvasEvents() {
       const firstPoint = patrolPath[0];
       const { resolution, origin } = activeMap.meta;
       
-      // 1. แปลงพิกัด "จุดแรก" (World) ให้เป็น "พิกัดพิกเซลบนแผนที่" (Map Pixel) ด้วยสูตรดั้งเดิม
+      //แปลงพิกัด "จุดแรก" (World) ให้เป็น "พิกัดพิกเซลบนแผนที่" (Map Pixel) ด้วยสูตรดั้งเดิม
       const firstPointPx = (firstPoint.x - origin[0]) / resolution;
       const firstPointPy = mapImage.height - ((firstPoint.y - origin[1]) / resolution);
 
-      // 2. แปลงพิกัด "เมาส์" (Screen) ให้เป็น "พิกัดพิกเซลบนแผนที่" (Map Pixel)
+      //แปลงพิกัด "เมาส์" (Screen) ให้เป็น "พิกัดพิกเซลบนแผนที่" (Map Pixel)
       const mousePx = (currentMousePos.x - mapView.viewState.offsetX) / mapView.viewState.scale;
       const mousePy = (currentMousePos.y - mapView.viewState.offsetY) / mapView.viewState.scale;
 
-      // 3. คำนวณระยะห่างในระบบพิกัดเดียวกัน
+      //คำนวณระยะห่างในระบบพิกัดเดียวกัน
       const distance = Math.sqrt(Math.pow(mousePx - firstPointPx, 2) + Math.pow(mousePy - firstPointPy, 2));
       
       const previouslyHovering = isHoveringFirstPoint;
@@ -858,7 +845,7 @@ function drawUserWalls(ctx) {
 export async function saveEditedMapAsNew(newName) {
     if (!activeMap.name) return;
 
-    // 1. โหลดข้อมูลแผนที่ "ต้นฉบับ" (ตัวเต็ม ไม่ใช่ตัว Crop ที่โชว์อยู่)
+    // โหลดข้อมูลแผนที่ "ต้นฉบับ" (ตัวเต็ม ไม่ใช่ตัว Crop ที่โชว์อยู่)
     // เราต้องดึงใหม่จาก Backend เพื่อความชัวร์ว่าเป็นไฟล์ Original จริงๆ
     const originalMapData = await window.electronAPI.getMapDataByName(activeMap.name);
     
@@ -867,29 +854,28 @@ export async function saveEditedMapAsNew(newName) {
         return;
     }
 
-    // 2. สร้าง Image Object จากรูปต้นฉบับ
+    // สร้าง Image Object จากรูปต้นฉบับ
     const fullImage = new Image();
     fullImage.src = originalMapData.base64;
     await new Promise(resolve => fullImage.onload = resolve);
 
-    // 3. เตรียม Canvas ขนาดเท่า "รูปต้นฉบับ"
+    // เตรียม Canvas ขนาดเท่า "รูปต้นฉบับ"
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = fullImage.width;
     tempCanvas.height = fullImage.height;
     const tCtx = tempCanvas.getContext('2d');
 
-    // 4. วาดรูปต้นฉบับลงไป
+    // วาดรูปต้นฉบับลงไป
     tCtx.imageSmoothingEnabled = false;
     tCtx.drawImage(fullImage, 0, 0);
 
-    // 5. วาดเส้น Edits ทับลงไป
-    // ⚠️ สำคัญ: ต้องใช้ Meta ของ "ต้นฉบับ" ในการคำนวณพิกัด
+    // วาดเส้น Edits ทับลงไป
+    // ใช้ Meta ของ "ต้นฉบับ" ในการคำนวณพิกัด
     const { resolution, origin } = originalMapData.meta; 
     
     tCtx.lineCap = 'round';
     tCtx.lineJoin = 'round';
     // ปรับความหนาเส้น (เนื่องจากรูปเต็มอาจจะใหญ่กว่ารูป Crop ต้องกะขนาดให้ดี)
-    // หรือใช้สูตร: 15 / scale ถ้าต้องการ
     tCtx.lineWidth = 10 / mapView.viewState.scale; ; 
 
     mapEdits.forEach(edit => {
@@ -933,18 +919,17 @@ free_thresh: 0.196
 
     console.log(`Saving full-size map: ${newName}`);
 
-    // 8. ส่งไปบันทึก
+    //ส่งไปบันทึก
     const result = await window.electronAPI.saveEditedMap(newName, newBase64, newYamlContent);
 
     if (result.success) {
         alert("Map saved successfully (Full Size)!");
-        // ... (Logic การเคลียร์ Cache หรือ Reload Gallery เดิมของคุณ) ...
         if (newName === activeMap.name) {
              await window.electronAPI.deleteMapCache(newName);
         }
         window.electronAPI.syncMaps();
         toggleMode('none'); 
-        mapEdits.length = 0; // เคลียร์ Edits หลังบันทึก
+        mapEdits.length = 0;
     } else {
         alert("❌ Failed to save map: " + result.message);
     }
@@ -974,12 +959,12 @@ export function cancelMode() {
   }
   const wallBtn = document.getElementById('toggle-wall-btn');
   if(wallBtn) {
-      wallBtn.textContent = 'Wall:OFF'; // คืนค่าเดิม
+      wallBtn.textContent = 'Wall:OFF'; 
       wallBtn.classList.remove('active');
   }
   const eraserBtn = document.getElementById('toggle-eraser-btn');
   if(eraserBtn) {
-      eraserBtn.textContent = 'Eraser:OFF'; // คืนค่าเดิม
+      eraserBtn.textContent = 'Eraser:OFF';
       eraserBtn.classList.remove('active');
   }
   renderObjects();
@@ -1001,7 +986,7 @@ function loadLocalMapsToGallery() {
 }
 
 async function autoCropMapImage(sourceImage, meta) {
-  console.log("✂️ Cropping map to fit content...");
+  console.log("Cropping map to fit content...");
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
   const width = sourceImage.width;
@@ -1015,7 +1000,7 @@ async function autoCropMapImage(sourceImage, meta) {
 
   let minX = width, minY = height, maxX = -1, maxY = -1;
 
-  // 1. สแกนหาขอบเขตของแผนที่จริง (ที่ไม่ใช่สีเทา)
+  //สแกนหาขอบเขตของแผนที่จริง (ที่ไม่ใช่สีเทา)
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const color = imageData[(y * width + x) * 4];
@@ -1059,15 +1044,15 @@ function addMapToGallery(name, base64) {
   img.style.cursor = 'pointer';
   img.addEventListener('click', async () => {
     console.log(`👁️ Previewing map: ${name}`);
-    // 1. โหลดข้อมูล Meta ชั่วคราวสำหรับ Preview
+    // โหลดข้อมูล Meta ชั่วคราวสำหรับ Preview
     const result = await window.electronAPI.getMapMeta(name);
     if (!result.success) {
       alert(`Could not load metadata for ${name}`);
       return;
     }
-    // 2. เก็บข้อมูลที่เลือกลงในตัวแปรชั่วคราว
+    // เก็บข้อมูลที่เลือกลงในตัวแปรชั่วคราว
     current_map_select = { name, base64, meta: result.data };
-    // 3. โหลดและแสดงรูปภาพต้นฉบับเพื่อ Preview
+    // โหลดและแสดงรูปภาพต้นฉบับเพื่อ Preview
     mapImage = new Image();
     mapImage.onload = () => {
       resetStaticMapView(); 
@@ -1104,7 +1089,7 @@ function createDimmerMask(imageData) {
   maskCtx.putImageData(maskImageData, 0, 0);
   dimmerMaskImage = new Image();
   dimmerMaskImage.src = maskCanvas.toDataURL();
-  console.log("🎨 StaticMap: Pixel-perfect dimmer mask created from inflated map.");
+  console.log("StaticMap: Pixel-perfect dimmer mask created from inflated map.");
 }
 
 function bufferToBase64(buffer) {
@@ -1135,8 +1120,6 @@ function getWorldCoordsFromEvent(e) {
 
   const px = (clickX - mapView.viewState.offsetX) / mapView.viewState.scale;
   const py = (clickY - mapView.viewState.offsetY) / mapView.viewState.scale;
-  
-  // --- ✅ กลับมาใช้สูตรดั้งเดิมที่ถูกต้อง ---
   return {
     x: activeMap.meta.origin[0] + (px * activeMap.meta.resolution),
     y: activeMap.meta.origin[1] + ((mapImage.height - py) * activeMap.meta.resolution)
@@ -1212,7 +1195,7 @@ function drawPatrolPath(ctx) {
     const { resolution, origin } = activeMap.meta;
     const mapImgHeight = mapImage.height;
 
-    // --- 1. วาดเส้นเชื่อมระหว่างจุด ---
+    // --- วาดเส้นเชื่อมระหว่างจุด ---
     if (patrolState.patrolPath.length > 1) {
         ctx.strokeStyle = 'orange';
         ctx.lineWidth = 2 / mapView.viewState.scale; // ทำให้เส้นหนาเท่าเดิมไม่ว่าจะซูมแค่ไหน
@@ -1231,7 +1214,7 @@ function drawPatrolPath(ctx) {
         ctx.setLineDash([]); // คืนค่าเป็นเส้นทึบ
     }
 
-    // --- 2. วาดจุด Waypoint แต่ละจุด ---
+    // --- วาดจุด Waypoint แต่ละจุด ---
     patrolState.patrolPath.forEach((point, i) => {
         const px = (point.x - origin[0]) / resolution;
         const py = mapImgHeight - ((point.y - origin[1]) / resolution);
@@ -1362,7 +1345,7 @@ function drawArrow(ctx, startWorldPos, endScreenPos, color) {
         return;
     }
 
-    // --- 1. แปลงพิกัด "จุดเริ่มต้น" จาก World -> Screen ---
+    // --- แปลงพิกัด "จุดเริ่มต้น" จาก World -> Screen ---
     const { resolution, origin } = activeMap.meta;
     const mapImgHeight = mapImage.height;
     
@@ -1374,11 +1357,11 @@ function drawArrow(ctx, startWorldPos, endScreenPos, color) {
     const startScreenX = startPx * mapView.viewState.scale + mapView.viewState.offsetX;
     const startScreenY = startPy * mapView.viewState.scale + mapView.viewState.offsetY;
 
-    // --- 2. "จุดสิ้นสุด" เป็น Screen Coordinates อยู่แล้ว ---
+    // --- "จุดสิ้นสุด" เป็น Screen Coordinates อยู่แล้ว ---
     const endScreenX = endScreenPos.x;
     const endScreenY = endScreenPos.y;
 
-    // --- 3. วาดเส้นและหัวลูกศร ---
+    // --- วาดเส้นและหัวลูกศร ---
     ctx.save(); // บันทึกสถานะ context
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
@@ -1446,7 +1429,7 @@ function isPathBlocked(p1, p2) {
     if (e2 < dx) { err += dx; y += sy; }
   }
 
-  return false; // ✅ ทางสะดวก
+  return false;
 }
 
 async function loadLastActiveMap() {
@@ -1480,7 +1463,7 @@ async function loadLastActiveMap() {
       
       console.log("Last map loaded for preview.");
   } else {
-      console.warn("⚠️ Could not load last map:", result.message);
+      console.warn("Could not load last map:", result.message);
   }
 }
 
@@ -1508,12 +1491,12 @@ function showPrompt(title, defaultValue = "") {
 
         const onConfirm = () => {
             cleanup();
-            resolve(inputEl.value); // ส่งค่ากลับ
+            resolve(inputEl.value);
         };
 
         const onCancel = () => {
             cleanup();
-            resolve(null); // ส่งค่า null (เหมือนกด Cancel ใน prompt ปกติ)
+            resolve(null);
         };
 
         const onKey = (e) => {
@@ -1534,7 +1517,7 @@ async function updateHomePose() {
         const result = await window.electronAPI.getMapHome(activeMap.name);
         if (result.success) {
             homePose = result.data;
-            console.log("🏠 Home pose loaded:", homePose);
+            console.log("Home pose loaded:", homePose);
         } else {
             homePose = null; // ถ้าไม่มี Home ให้เคลียร์ทิ้ง
         }
@@ -1550,42 +1533,29 @@ function drawHome(ctx) {
     const { resolution, origin } = activeMap.meta;
     const mapImgHeight = mapImage.height;
 
-    // 1. แปลง World Coordinate เป็น Map Pixel
     const px = (homePose.x - origin[0]) / resolution;
     const py = mapImgHeight - ((homePose.y - origin[1]) / resolution);
-    
-    // 2. คำนวณ Scale เพื่อให้ไอคอนขนาดคงที่เวลาซูม
+
     const scale = 1.0 / mapView.viewState.scale; 
     const size = 12 * scale; // ขนาดบ้าน
 
     ctx.save();
     ctx.translate(px, py);
-
-    // (Optional) ถ้าอยากให้บ้านหมุนตามทิศที่ตั้งไว้
-    // const yaw = getYawFromQuaternion({ x: homePose.ox, y: homePose.oy, z: homePose.oz, w: homePose.ow });
-    // ctx.rotate(-yaw); 
-
-    // 3. วาดรูปบ้าน (House Icon)
     ctx.beginPath();
-    // หลังคา
     ctx.moveTo(0, -size); 
     ctx.lineTo(size, -size * 0.3);
     ctx.lineTo(size * 0.8, -size * 0.3);
-    // ตัวบ้าน
     ctx.lineTo(size * 0.8, size);
     ctx.lineTo(-size * 0.8, size);
     ctx.lineTo(-size * 0.8, -size * 0.3);
     ctx.lineTo(-size, -size * 0.3);
     ctx.closePath();
 
-    // ลงสี
     ctx.fillStyle = '#007bff'; // สีน้ำเงิน
     ctx.fill();
     ctx.strokeStyle = 'white';
     ctx.lineWidth = 2 * scale;
     ctx.stroke();
-
-    // วาดตัว H ตรงกลาง
     ctx.fillStyle = 'white';
     ctx.font = `bold ${10 * scale}px Arial`;
     ctx.textAlign = 'center';

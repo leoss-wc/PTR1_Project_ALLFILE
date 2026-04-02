@@ -23,7 +23,7 @@ export function setupVideoPlayer() {
       return;
     }
 
-    // 2. ✨ จัดกลุ่มวิดีโอตาม "ชื่อโฟลเดอร์วันที่"
+    //จัดกลุ่มวิดีโอตาม "ชื่อโฟลเดอร์วันที่"
     const groupedVideos = {};
     
     videos.forEach(video => {
@@ -38,10 +38,10 @@ export function setupVideoPlayer() {
         groupedVideos[dateGroup].push(video);
     });
 
-    // 3. เรียงลำดับวันที่ (ใหม่ -> เก่า)
+    //เรียงลำดับวันที่ (ใหม่ -> เก่า)
     const sortedDates = Object.keys(groupedVideos).sort().reverse();
 
-    // 4. วาดลงหน้าจอทีละกลุ่ม
+    //วาดลงหน้าจอทีละกลุ่ม
     sortedDates.forEach(date => {
         // สร้างหัวข้อวันที่
         const groupContainer = document.createElement('div');
@@ -58,14 +58,12 @@ export function setupVideoPlayer() {
 
         const groupGrid = document.createElement('div');
         groupGrid.className = 'video-grid'; // ใช้ Grid เดิม
-        // ปรับ CSS inline นิดหน่อยเพื่อให้ Grid ซ้อนอยู่ใน Group ได้สวย
         groupGrid.style.display = 'grid';
         groupGrid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(120px, 1fr))';
         groupGrid.style.gap = '10px';
 
         // วาดวิดีโอในกลุ่มนั้น
         groupedVideos[date].forEach(({ relativePath, name }) => {
-            // (ใช้ Logic เดิมในการสร้าง Thumbnail)
             window.electronAPI.getVideoFileURL(relativePath).then(videoSrc => {
                 const thumbWrapper = document.createElement('div');
                 thumbWrapper.style.cursor = 'pointer';
@@ -134,7 +132,6 @@ export function setupVideoPlayer() {
   if (window.electronAPI.onVideoSaveStatus) {
       window.electronAPI.onVideoSaveStatus((result) => {
         if (result.success) {
-            // alert(`✅ Saved: ${result.path}`); // ปิด Alert ก็ได้ถ้ารำคาญ
             if (currentVideoFolder) loadVideos(currentVideoFolder);
             else loadDefaultVideos();
         } else {

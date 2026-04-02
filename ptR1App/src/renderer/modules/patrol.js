@@ -4,13 +4,13 @@ import * as patrolState from './patrolState.js';
 import { patrolPath as drawnPath, clearDrawnPath } from './patrolState.js';
 
 export function initPatrolManager() {
-    // 1. Listeners รับผลลัพธ์การสั่งงาน (Service Result)
+    //Listeners รับผลลัพธ์การสั่งงาน (Service Result)
     window.electronAPI.onPatrolStartResult(handleServiceResult);
     window.electronAPI.onPatrolPauseResult(handleServiceResult);
     window.electronAPI.onPatrolResumeResult(handleServiceResult);
     window.electronAPI.onPatrolStopResult(handleServiceResult);
 
-    // 2. Listener รับสถานะการลาดตระเวน (Status Change)
+    //Listener รับสถานะการลาดตระเวน (Status Change)
     window.electronAPI.onPatrolStatusChange((status) => {
         console.log("Patrol Status Changed:", status);
         patrolState.updateStatus(status); // ส่งต่อไปให้ State Manager จัดการ
@@ -54,7 +54,7 @@ export function startPatrol() {
     const shouldLoop = patrolState.isLooping;
     const goals = drawnPath.map(point => ({
         header: { 
-            frame_id: 'map',  // ระบุว่าพิกัดนี้อยู่บนแผนที่
+            frame_id: 'map',
             stamp: { secs: 0, nsecs: 0 } 
         },
         pose: {
@@ -65,8 +65,6 @@ export function startPatrol() {
 
     patrolState.setPatrolling(true);
     patrolState.updateStatus(`Starting patrol with ${goals.length} points...`);
-    
-    // ส่งข้อมูลที่ถูกต้องไป
     window.electronAPI.startPatrol(goals, shouldLoop);
 }
 

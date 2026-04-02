@@ -82,17 +82,15 @@ function processInputs() {
   const currentMaxAngular = ABSOLUTE_MAX_ANGULAR * speedMultiplier;
 
   let vx = 0, vy = 0, wz = 0;
-  // แบบแก้ไข: ให้ A/D เป็นการเลี้ยว (Angular Z)
-  if (activeKeys.has('KeyW')) vx += currentMaxLinear;
-  if (activeKeys.has('KeyS')) vx -= currentMaxLinear;
+
+  if (activeKeys.has('KeyW')) vx += currentMaxLinear; //เดินหน้า
+  if (activeKeys.has('KeyS')) vx -= currentMaxLinear; //ถอยหลัง
   
-  // ย้ายการเลี้ยวมาไว้ที่ A/D
   if (activeKeys.has('KeyA')) wz += currentMaxAngular; // เลี้ยวซ้าย
   if (activeKeys.has('KeyD')) wz -= currentMaxAngular; // เลี้ยวขวา
 
-  // ถ้าหุ่นยนต์ของคุณเป็นล้อ Mecanum สามารถใช้ Q/E เพื่อสไลด์ข้างได้ (Optional)
-  if (activeKeys.has('KeyQ')) vy += currentMaxLinear; 
-  if (activeKeys.has('KeyE')) vy -= currentMaxLinear;
+  if (activeKeys.has('KeyQ')) vy += currentMaxLinear; // เคลื่อนที่ไปทางซ้าย (strafe left)
+  if (activeKeys.has('KeyE')) vy -= currentMaxLinear; // เคลื่อนที่ไปทางขวา (strafe right)
 
   window.electronAPI.sendTwistCommand({
     linear: { x: vx, y: vy, z: 0 },

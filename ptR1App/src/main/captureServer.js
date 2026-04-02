@@ -1,26 +1,7 @@
-/**
- * captureServer.js — ROS Worker (server.js) Additions
- * จัดการการสื่อสารกับ ROS Topic/Service บน Raspi
- *
- * วิธีใช้: เพิ่มใน server.js
- *
- *  1. import ที่หัวไฟล์:
- *     const { handleCaptureMessage, initCaptureSubscriber } = require('./captureServer');
- *
- *  2. ใน switch-case ของ parentPort.on('message') เพิ่ม:
- *     case 'captureSnapshot':
- *     case 'captureBurstStart':
- *     case 'captureBurstStop':
- *       handleCaptureMessage(message, ros, parentPort);
- *       break;
- *
- *  3. ใน connectROSBridge() หลัง subscribe อื่นๆ เพิ่ม:
- *     initCaptureSubscriber(ros, parentPort);
- */
 
 const ROSLIB = require('roslib'); // server.js โหลดอยู่แล้ว แต่ใส่ไว้เพื่อความชัดเจน
 
-// ---- 1. Handle messages จาก Main Process --------------------------------
+// ---- Handle messages จาก Main Process --------------------------------
 
 /**
  * @param {object}         message    — message จาก parentPort
@@ -62,13 +43,8 @@ function handleCaptureMessage(message, ros, parentPort) {
   }
 }
 
-// ---- 2. Subscribe รับผลจาก Raspi -----------------------------------------
+// ---- Subscribe  Raspi -----------------------------------------
 
-/**
- * Subscribe topic /stream_manager/captured
- * Raspi publish JSON: { filename, count, label }
- * แล้ว relay ไปให้ Main Process
- */
 function initCaptureSubscriber(ros, parentPort) {
   if (!ros || !ros.isConnected) return;
 

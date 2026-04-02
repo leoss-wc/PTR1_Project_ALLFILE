@@ -54,8 +54,8 @@ export class CanvasRecorder {
   }
 
   #handleSegmentComplete() {
-    const chunksToSave = this.#recordedChunks;  // ← snapshot ก่อน
-    this.#recordedChunks = [];                   // ← reset ให้ segment ใหม่
+    const chunksToSave = this.#recordedChunks;  
+    this.#recordedChunks = [];                
 
     if (this.#isRecording) {
         this.start();

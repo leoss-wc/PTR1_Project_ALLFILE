@@ -212,7 +212,7 @@ ipcMain.on('connect-rosbridge', (event, ip, port) => {
 
 // ---Navigation (Request/Response Pattern) ---
 ipcMain.handle('map-select', async (event, mapName) => {
-    rosWorker?.postMessage({ type: 'selectNavMap', mapName }); // ต้องแก้ฝั่ง server.js ให้รับชื่อ type นี้
+    rosWorker?.postMessage({ type: 'selectNavMap', mapName });
     
     return new Promise((resolve) => {
         const handler = (data) => {
@@ -255,7 +255,6 @@ ipcMain.handle('nav-stop', async (event, savePose) => {
 
 // ---  Map Management ---
 ipcMain.on('sync-maps', async () => {
-    // Logic การ Sync Map เดิม (ย่อไว้)
     const localMapFolder = path.join(mapFolder);
     const pngFolder = path.join(localMapFolder, 'png');
     const yamlFolder = path.join(localMapFolder, 'yaml');
@@ -318,7 +317,6 @@ ipcMain.on('delete-map', (_, mapName) => {
         if (fs.existsSync(yamlPath)) fs.unlinkSync(yamlPath);
 
         // ลบไฟล์ Cache
-        // mapCacheDir ต้องถูกประกาศไว้ด้านบนของไฟล์ main.js แล้ว (path.join(userDataPath, 'map_cache'))
         const cachePath = path.join(mapCacheDir, `${mapName}.json`);
         
         if (fs.existsSync(cachePath)) {
@@ -371,7 +369,7 @@ ipcMain.handle('get-map-data-by-name', async (_, mapName) => {
   }
 });
 
-// --- 3.4 Robot Control (Fire-and-forget) ---
+// --- Robot Control (Fire-and-forget) ---
 ipcMain.on('robot-command', (_, command) => rosWorker?.postMessage({ type: 'sendCmd', command }));
 ipcMain.on('twist-command', (_, data) => rosWorker?.postMessage({ type: 'sendTwist', data }));
 ipcMain.on('ros:send-servo-tilt-int16', (_, angle) => rosWorker?.postMessage({ type: 'sendServoTiltInt16', angle }));
@@ -383,7 +381,7 @@ ipcMain.on('uint32-command', (_, msg) => {
 });
 ipcMain.on('relay-command', (_, data) => rosWorker?.postMessage({ type: 'sendRelay', ...data }));
 
-// --- 3.5 Patrol & Goals ---
+// --- Patrol & Goals ---
 ipcMain.on('start-patrol', (_, data) => rosWorker?.postMessage({ type: 'startPatrol', ...data }));
 ipcMain.on('pause-patrol', () => rosWorker?.postMessage({ type: 'pausePatrol' }));
 ipcMain.on('resume-patrol', () => rosWorker?.postMessage({ type: 'resumePatrol' }));
@@ -558,10 +556,7 @@ ipcMain.on('set-initial-pose', (_, pose) => {
     });
 });
 ipcMain.handle('nav:set-home', async (_, mapName) => {
-    // 1. ส่งคำสั่งไปที่ Worker
     rosWorker?.postMessage({ type: 'setHome', mapName });
-
-    // 2. สร้าง Promise รอผลลัพธ์
     return new Promise((resolve) => {
         const timeoutMs = 5000; // รอสูงสุด 5 วินาที
         // ฟังก์ชัน Callback เมื่อได้รับผล
@@ -599,7 +594,7 @@ ipcMain.handle('nav:go-home', async (_, mapName) => {
         const timeoutTimer = setTimeout(() => {
             internalEvents.off('home-result', handler);
             resolve({ success: false, message: "Timeout: No response from ROS" });
-        }, 600000); // 600s ตรงกับ HOME_TIMEOUT_MS ใน shutdownManager.js
+        }, 600000); // 600s 
 
         internalEvents.on('home-result', handler);
     });
@@ -618,7 +613,7 @@ ipcMain.handle('detection:update', async (_, settings) => {
   });
 });
 
-// --- 3.8 Cache & Robots ---
+// --- Cache & Robots ---
 ipcMain.handle('robots:load', loadRobotsFromFile);
 ipcMain.handle('robots:save', (_, robots) => saveRobotsToFile(robots));
 ipcMain.handle('mapcache:save', async (_, { mapName, imageData }) => {
@@ -632,7 +627,7 @@ ipcMain.handle('mapcache:load', async (_, mapName) => {
 });
 
 
-// 4. App Lifecycle & Window Creation
+// App Lifecycle & Window Creation
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
@@ -669,7 +664,7 @@ app.whenReady().then(() => {
   if (!fs.existsSync(mapFolder)) fs.mkdirSync(mapFolder, { recursive: true });
   if (!fs.existsSync(dataFolder)) {fs.mkdirSync(dataFolder, { recursive: true });}
 
-  // Init Processes
+  //Init Processes
   //startPythonBackend();
   createRosWorker();
   createWindow();

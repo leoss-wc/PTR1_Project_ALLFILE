@@ -172,7 +172,7 @@ function setupRecorder() {
 
 
     if(canvas && video) {
-        // 1. เริ่มต้น Recorder
+        //เริ่มต้น Recorder
         
         recorder = new CanvasRecorder(canvas, { fps: 12, segmentMs: 10 * 60 * 1000 });
         
@@ -237,7 +237,7 @@ function setupRecorder() {
 function setupGlobalCallbacks() {
     // ROS Connection Status
     const rosStatusEl = document.getElementById('home-ros-status');
-    rosStatusEl.textContent = 'Disconnected';          // ← set ก่อนรอ event
+    rosStatusEl.textContent = 'Disconnected';      
     rosStatusEl.className = 'status-disconnected';
     updateRosButtons(false);
 

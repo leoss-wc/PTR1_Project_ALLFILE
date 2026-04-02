@@ -1,7 +1,4 @@
 //webrtc-player.js
-/**
- * A class to handle the WebRTC connection to a MediaMTX WHEP endpoint.
- */
 export class WebRTCPlayer {
     constructor(url, videoElement, statusElement, overlayElement) {
         this.url = url;
@@ -25,10 +22,10 @@ export class WebRTCPlayer {
             this.disconnect();
         }
 
-        // 1. Create a new RTCPeerConnection
+        //Create a new RTCPeerConnection
         this.peerConnection = new RTCPeerConnection();
 
-        // 2. Handle incoming tracks
+        //Handle incoming tracks
         this.peerConnection.ontrack = (event) => {
             this._updateStatus('Stream connected!');
             console.log(`Track received: ${event.track.kind}`);
@@ -37,21 +34,19 @@ export class WebRTCPlayer {
             }
             this.videoElement.srcObject.addTrack(event.track);
             this.videoElement.play().catch(e => console.warn("Auto-play blocked:", e));
-            // เริ่มตรวจสอบ delay ของสตรีม
-            this._startDelayMonitor();
         };
         
-        // 3. Define the media we want to receive
+        //Define the media we want to receive
         this.peerConnection.addTransceiver('video', { direction: 'recvonly' });
         // this.peerConnection.addTransceiver('audio', { direction: 'recvonly' }); // Uncomment for audio
 
         try {
-            // 4. Create and set local SDP offer
+            //Create and set local SDP offer
             const offer = await this.peerConnection.createOffer();
             await this.peerConnection.setLocalDescription(offer);
             this._updateStatus('Sending offer to server...');
 
-            // 5. Send offer to MediaMTX WHEP endpoint
+            //Send offer to MediaMTX WHEP endpoint
             const response = await fetch(this.url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/sdp' },
@@ -63,7 +58,7 @@ export class WebRTCPlayer {
                 throw new Error(`Server responded with status ${response.status}: ${errorText}`);
             }
 
-            // 6. Receive and set remote SDP answer
+            //Receive and set remote SDP answer
             this._updateStatus('Received answer, establishing connection...');
             const answerSdp = await response.text();
             await this.peerConnection.setRemoteDescription(
@@ -113,52 +108,11 @@ export class WebRTCPlayer {
             Tesseract.terminate();
         }
     }
-
-    /**
-     * Private helper to update the status element.
-     * @param {string} message The message to display.
-     */
     _updateStatus(message) {
         if (this.statusElement) {
             this.statusElement.innerText = message;
         }
     }
-
-    //ฟังก์ชันสำหรับตรวจสอบความล่าช้า (delay) ของสตรีม
-_startDelayMonitor() {
-    if (this._delayInterval) clearInterval(this._delayInterval);
-
-    // ── FPS counter ──────────────────────────────────────────────
-    let frameCount = 0;
-    let lastFpsTime = performance.now();
-    let currentFps = 0;
-
-    const countFrame = (now, metadata) => {
-        frameCount++;
-        const elapsed = now - lastFpsTime;
-
-        if (elapsed >= 1000) { // คำนวณทุก 1 วินาที
-            currentFps = Math.round((frameCount * 1000) / elapsed);
-            frameCount = 0;
-            lastFpsTime = now;
-        }
-
-        // วนนับ frame ต่อไปเรื่อยๆ
-        this._frameCallbackId = this.videoElement.requestVideoFrameCallback(countFrame);
-    };
-
-    this._frameCallbackId = this.videoElement.requestVideoFrameCallback(countFrame);
-
-    // ── UI update ────────────────────────────────────────────────
-    this._delayInterval = setInterval(() => {
-        const now = new Date().toLocaleTimeString('th-TH', {
-            hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit'
-        });
-        if (this.statusElement) {
-            this.statusElement.innerText = `Streaming | ${now} | ${currentFps} FPS`;
-        }
-    }, 500);
-}
     
 }
 

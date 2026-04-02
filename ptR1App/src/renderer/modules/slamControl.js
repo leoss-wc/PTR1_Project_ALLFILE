@@ -52,7 +52,7 @@ export function initSlamControl() {
     });
     if (resetSlamBtn) {
         resetSlamBtn.addEventListener('click', () => {
-            if (!confirm("⚠️ Are you sure you want to RESET the map? Current progress will be lost.")) return;
+            if (!confirm("Are you sure you want to RESET the map? Current progress will be lost.")) return;
 
             slamResultLabel.textContent = 'Resetting SLAM...';
             slamResultLabel.style.color = 'yellow';

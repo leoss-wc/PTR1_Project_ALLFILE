@@ -1,11 +1,4 @@
-/**
- * captureModule.js — Main Process
- * จัดการ IPC สำหรับ Dataset Capture
- *
- * วิธีใช้: เพิ่มใน main.js
- *   const { initCaptureModule } = require('./captureModule');
- *   initCaptureModule(ipcMain, app, rosWorker, mainWindow);  // เรียกหลัง createWindow()
- */
+
 
 const fs   = require('fs');
 const path = require('path');

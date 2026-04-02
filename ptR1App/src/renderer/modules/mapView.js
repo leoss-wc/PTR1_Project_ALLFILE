@@ -15,7 +15,7 @@ export function initMapViewController(container, staticRedrawAllCb, liveRedrawAl
   redrawLiveCallback = liveRedrawAllCb;
   container.addEventListener('wheel', (e) => {
     e.preventDefault();
-    handleWheel(e); // ✅ ใช้ฟังก์ชันเดียวกัน
+    handleWheel(e); 
   }, { passive: false });
 }
 

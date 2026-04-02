@@ -13,11 +13,10 @@ let zoom = 1.0;
 let offset = { x: 0, y: 0 };
 let hasBeenReset = false;
 let animationFrameId = null;
-const TARGET_FPS = 25;            // เป้าหมาย: 20 เฟรมต่อวินาที (ปรับเลขนี้ได้ตามใจ)
-const FRAME_INTERVAL = 1000 / TARGET_FPS; // คำนวณเป็นมิลลิวินาทีต่อเฟรม
+const TARGET_FPS = 25;         
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
 let isMapLoading = false;
-let lastTime = 0; // ตัวแปรเก็บเวลาล่าสุดที่วาด
-
+let lastTime = 0;
 export function initHomeMap(canvasElement) {
   canvas = canvasElement;
   ctx = canvas.getContext('2d');
@@ -200,15 +199,12 @@ function drawPlannedPath() {
 }
 
 export function renderDashboardMap() {
-  // ถ้ายังไม่มี context หรือ canvas ยังไม่มีขนาด ให้หยุดทำงานทันที
   if (!ctx || canvas.width === 0 || canvas.height === 0) {
     console.warn(`HomeMap: Render skipped, canvas has no size yet (${canvas.width}x${canvas.height}).`);
     return;
   }
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.imageSmoothingEnabled = false;
-  
-  // ต้องมีทั้ง mapImg และ activeMap.meta ก่อนถึงจะวาดอะไรลงไป
   if (mapImg && activeMap.meta) {
     ctx.drawImage(mapImg, offset.x, offset.y, mapImg.width * zoom, mapImg.height * zoom);
     
@@ -236,7 +232,7 @@ export function setMapImage(base64Str) {
     // รีเซ็ต Flag ทุกครั้งที่เปลี่ยนแผนที่ใหม่
     hasBeenReset = false; 
     mapImg.onload = () => {
-      console.log('🏠 HomeMap: Map image loaded successfully.');
+      console.log('HomeMap: Map image loaded successfully.');
       resizeCanvas();
       resolve();
     };
