@@ -1,0 +1,13 @@
+<launch>
+  <!--  <param name="/use_sim_time" value="false" /> -->
+
+<!--  base_sysptR1.launch 
+    rosbridge_websocket 9090
+    rosserial ESP32 /dev/ttyACM0 115200
+ -->
+    <include file="$(find ptR1_navigation)/launch/base_sysptR1.launch" />
+    <include file="$(find ptR1_navigation)/launch/G2_lidar.launch" />
+ <!--
+     <node name="map_manager_node" pkg="ptR1_navigation" type="map_manager_node.py" output="screen" />
+-->
+</launch>

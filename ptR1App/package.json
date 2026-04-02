@@ -1,0 +1,51 @@
+{
+  "name": "ptr1app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/main/main.js",
+  "build": {
+    "appId": "com.example.robotpatrol",
+    "icon": "assets/icon.png",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/ffmpeg-static/**/*"
+    ],
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "build": "electron-builder",
+    "rebuild": "electron-rebuild",
+    "build:linux": "electron-builder --linux",
+    "build:win": "electron-builder --win"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12",
+    "express": "^5.2.1",
+    "serve-static": "^2.2.1"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.3.0",
+    "js-yaml": "^4.1.0",
+    "roslib": "^1.4.1"
+  }
+}
