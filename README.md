@@ -197,3 +197,5 @@ npm start
 **Thirayut Wanchiang**
 Computer Engineering, Naresuan University
 [github.com/leoss-wc](https://github.com/leoss-wc) | thirayut.wc@gmail.com
+## License
+MIT License © 2026 Thirayut Wanchiang
