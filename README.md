@@ -65,6 +65,22 @@ The system is divided into 3 layers:
 
 ---
 
+## Screenshots
+
+### Electron App
+| Dashboard (Camera + Map) | Map & Navigation (Patrol Mode) |
+|---|---|
+| ![](docs/electron_demo4.png) | ![](docs/electron_demo3.png) |
+
+### RViz — SLAM & Navigation
+| Full Corridor Map (~80m) | Navigation with Costmap |
+|---|---|
+| ![](docs/RvizExample2.png) | ![](docs/RvizExample1.png) |
+
+| TEB Local Planner (Close-up) |
+|---|
+| ![](docs/RvizExample3.png) |
+
 ## Installation
 
 ### Prerequisites
@@ -192,10 +208,12 @@ npm start
 
 ---
 
-## Author
-
+## License
+ 
+MIT License © 2026 Thirayut Wanchiang
+ 
+See [LICENSE](LICENSE) for full details.
+ 
 **Thirayut Wanchiang**
 Computer Engineering, Naresuan University
 [github.com/leoss-wc](https://github.com/leoss-wc) | thirayut.wc@gmail.com
-## License
-MIT License © 2026 Thirayut Wanchiang
