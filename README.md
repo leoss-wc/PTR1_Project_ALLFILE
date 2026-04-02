@@ -46,8 +46,8 @@ The system is divided into 3 layers:
 | Battery | LiFePO4 12V 15Ah |
 | Power Regulation | LM2596 x2 (12V→5V), XY-3606 (12V→5V for Pi) |
 
-![Control Board](docs/Control Board.png)
-![Power Distribution](docs/Power Distribution.png)
+![Control Board](docs/Control_Board.png)
+![Power Distribution](docs/Power_Distribution.png)
 
 ---
 
