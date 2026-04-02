@@ -7,20 +7,14 @@ Thumbs.db
 *.log
 *.tmp
 *.swo
-*.png
-*.jpg
 *.jpeg
 *.onnxx
 *.pt
 *.xlxs
 *.bag
 *.csv
-node_modules/
-dataset/
-ptR1App/dist/
-.vscode/
-build/
-ptR1App/bus.jpg
+
+
 
 
 
