@@ -29,12 +29,12 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 ┌──────────────────▼──────────────────────────┐
 │           Raspberry Pi 4B                   │
 │              ROS Noetic                     │
-│  SLAM │ AMCL │ TEB │ YOLO11 (ONNX Runtime)  │
+│  SLAM │ AMCL │ TEB │ YOLO11 (ONNX Runtime) │
 └──────────────────┬──────────────────────────┘
                    │ rosserial (USB)
 ┌──────────────────▼──────────────────────────┐
 │              ESP32-S3                       │
-│   Motor Control │ Relay │ IMU               │
+│   Motor Control │ Relay │ IMU │ LED Status  │
 └─────────────────────────────────────────────┘
 ```
 
@@ -47,8 +47,8 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 | Main Computer | Raspberry Pi 4B (4GB RAM) |
 | Microcontroller | ESP32-S3 |
 | Drive System | 4-Wheel Mecanum |
-| LiDAR | YDG2 LiDar |
-| Camera | Fisheye USB Camera OV5647|
+| LiDAR | YDLidar G2 |
+| Camera | Fisheye USB Camera OVA5647 |
 | Motor Driver | TB6612FNG via PCF8575 |
 
 ---
@@ -58,7 +58,7 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 | Layer | Technology |
 |---|---|
 | Robot OS | ROS Noetic (Ubuntu 20.04) |
-| SLAM | slam_toolbox |
+| SLAM | slam_toolbox (async) |
 | Localization | AMCL |
 | Local Planner | TEB Local Planner |
 | Object Detection | YOLO11 nano + ONNX Runtime |
@@ -80,7 +80,7 @@ ptR1 is an autonomous indoor patrol robot designed for long-corridor environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/leoss-wc/ptR1_bot.git
+git clone https://github.com/leoss-wc/ptR1.git
 cd ptR1
 
 # Install ROS dependencies
@@ -91,17 +91,67 @@ catkin_make
 source devel/setup.bash
 ```
 
-### Launch Navigation
+### Launch Base System (Raspberry Pi)
 
 ```bash
-# Start the base system 
-roslaunch ptR1 navigation_base.launch
-# Start the full navigation stack
-rosrun ptR1 navigation_node.py
-#send service  
-# Start object detection node
-rosrun stream_manager_node.py
-#send service  
+roslaunch ptR1_navigation base_sysptR1.launch
+```
+
+This starts all core nodes: rosbridge, serial connection, TF publishers, map manager, navigation manager, stream manager, and system monitor.
+
+---
+
+## Usage
+
+### 1. Create a Map (SLAM Mode)
+
+```bash
+# Start SLAM via ROS service
+rosservice call /map_manager/start_slam
+
+# Drive the robot around to build the map
+# When done, save the map
+rosservice call /map_manager/save_map "name: 'my_map'"
+
+# Stop SLAM
+rosservice call /map_manager/stop_processes
+```
+
+### 2. Start Navigation
+
+```bash
+# Step 1: Load a map (starts map_server)
+rosservice call /map_manager/select_nav_map "name: 'my_map'"
+
+# Step 2: Start AMCL + move_base
+rosservice call /nav/start "restore_pose: true"
+```
+
+### 3. Send Navigation Goals
+
+**Option A — Direct ROS service (Patrol mode)**
+```bash
+# Start patrol with waypoints and looping
+rosservice call /nav/start_patrol "goals: [...], loop: true"
+
+# Pause / Resume / Stop patrol
+rosservice call /nav/pause_patrol
+rosservice call /nav/resume_patrol
+rosservice call /nav/stop_patrol
+```
+
+**Option B — Via Electron App**
+
+Open the control app, place waypoints on the map, and use the patrol controls in the dashboard.
+
+### 4. Home Position
+
+```bash
+# Set current position as home
+rosservice call /nav/set_home "name: 'my_map'"
+
+# Navigate back to home
+rosservice call /nav/go_home "name: 'my_map'"
 ```
 
 ### Electron App (Operator PC)
@@ -112,15 +162,7 @@ npm install
 npm start
 ```
 
----
 
-## Usage
-
-1. Power on the robot and connect to the same network (or via Tailscale)
-2. Launch ROS navigation stack on Raspberry Pi
-3. Open the Electron control app on your PC
-4. Use the map panel to set navigation goals
-5. Monitor live video stream and detection results in real-time
 
 ---
 
